@@ -1,0 +1,72 @@
+# Teacher config: a larger causal Mamba model used as the distillation target.
+# Same as config.yaml except num_tfmamba is increased.
+#
+# Usage: python train.py --config config_teacher.yaml --exp_path checkpoints/teacher
+
+# Environment Settings
+env_setting:
+  num_gpus: 1
+  num_workers: 4
+  seed: 6688
+  stdout_interval: 10
+  checkpoint_interval: 500
+  validation_interval: 500
+  summary_interval: 25
+
+# Data path configuration
+data_cfg:
+  train_clean_json: data/train_clean.json
+  train_noisy_json: data/train_noisy.json
+  valid_clean_json: data/valid_clean.json
+  valid_noisy_json: data/valid_noisy.json
+
+# Training configuration
+training_cfg:
+  training_epochs: 500
+  batch_size: 8
+  learning_rate: 0.0008
+  adam_b1: 0.8
+  adam_b2: 0.99
+  lr_decay: 0.99
+  segment_size: 32000
+  # Teacher training is regression-only (Stage 1); no GAN/KD needed.
+  stage1_steps: 1000000000
+  teacher_ckpt: checkpoints/teacher/g_00000000.pth
+  teacher_num_tfmamba: 12
+  loss:
+    magnitude: 0.9
+    phase: 0.3
+    complex: 0.1
+    time: 0.2
+    consistancy: 0.1
+    adversarial: 0.05
+    feature_matching: 0.1
+    distill: 0.5
+    distill_mag: 1.0
+    distill_pha: 1.0
+    distill_com: 1.0
+
+# Discriminator configuration
+disc_cfg:
+  bands: 4
+  dim: 32
+
+# STFT configuration (causal: center=False)
+stft_cfg:
+  sampling_rate: 16000
+  n_fft: 400
+  hop_size: 100
+  win_size: 400
+
+# Model configuration
+model_cfg:
+  hid_feature: 64
+  compress_factor: 0.3
+  num_tfmamba: 12
+  d_state: 16
+  d_conv: 4
+  expand: 4
+  norm_epsilon: 0.00001
+  beta: 2.0
+  input_channel: 2
+  output_channel: 1
